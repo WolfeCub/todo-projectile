@@ -19,9 +19,14 @@
 (defvar org-project--hash nil
   "The hash map that contains the cached project file locations")
 
-(defvar org-project--cache-location "~/.emacs.d/org-project.cache")
+(defvar org-project--cache-location "~/.emacs.d/org-project.cache"
+  "Where to store the cached locations of projects")
 
-(defvar org-project--file-name ".project.org")
+(defvar org-project--file-name ".project.org"
+  "The name of the file to store in each project")
+
+(defvar org-project-use-ag nil
+  "If org-project should use ag to speed up searches")
 
 ;;* Functions
 (defun org-project--serialize-hash (data filename)
@@ -43,7 +48,11 @@
   "Generate a list of files that contain the appropriate keywords"
   (split-string
    (shell-command-to-string
-    (concat "ag --nocolor -l 'TODO|FIXME|NOTE|XXX' " dir))
+    (cond ((and org-project-use-ag (executable-find "ag"))
+           (concat "ag --nocolor -l 'TODO|FIXME|NOTE|XXX' " dir))
+          ((executable-find "grep")
+           (concat "grep -ERl --color=never 'TODO|FIXME|NOTE|XXX' " dir))
+          (:else (message "Could not find ag or grep in your path."))))
    "|\n" t "[ 	\n]"))
 
 (defun org-project--list-comments (file-path)
@@ -90,23 +99,26 @@
   (org-project--save-cache))
 
 ;;* Commands
-(defun org-project/create-project (&optional dir)
+(defun org-project/create-project (&optional directory)
   "Creates the org-file that will be associated with this project."
   (interactive)
   (let ((name (read-from-minibuffer "Project name: "))
-        (dir (if dir dir (expand-file-name (read-file-name "Project root dir: ")))))
-    (find-file (concat dir org-project--file-name))
-    (mapc (lambda (file-list)
-            (let ((file-name (car file-list)))
-              (insert (format "* %s\n" file-name))
-              (mapc (lambda (comm)
-                      (insert (format "** [[%s::%s][%s]] - %s\n" file-name (nth 1 comm) (nth 1 comm) (car comm))))
-                    (cdr file-list))))
-          (org-project--collect-comments dir))
-    (org-mode)
-    (org-project-mode t)
-    (puthash name dir org-project--hash)
-    (org-project--save-cache)))
+        (dir (if directory directory (expand-file-name (read-file-name "Project root dir: ")))))
+    (if (file-directory-p dir)
+        (progn 
+          (find-file (concat dir org-project--file-name))
+          (mapc (lambda (file-list)
+                  (let ((file-name (car file-list)))
+                    (insert (format "* %s\n" file-name))
+                    (mapc (lambda (comm)
+                            (insert (format "** [[%s::%s][%s]] - %s\n" file-name (nth 1 comm) (nth 1 comm) (car comm))))
+                          (cdr file-list))))
+                (org-project--collect-comments dir))
+          (org-mode)
+          (org-project-mode t)
+          (puthash name dir org-project--hash)
+          (org-project--save-cache))
+      (message "Please specify a directory"))))
 
 (defun org-project/open-project ()
   "Opens an existing org-project"

@@ -28,6 +28,15 @@
 (defvar org-project-use-ag nil
   "If org-project should use ag to speed up searches")
 
+(defvar org-project--search-regexp "TODO|FIXME|NOTE|XXX")
+
+(defvar org-project--ag-args "--files-with-matches --nocolor"
+  "Arguments passed to ag")
+
+(defvar org-project--grep-args "--extended-regexp --dereference-recursive \
+--files-with-matches --no-messages --color=never"
+  "Arguments passed to grep")
+
 ;;* Functions
 (defun org-project--serialize-hash (data filename)
   "Serialize hash-table data to filename."
@@ -49,9 +58,9 @@
   (split-string
    (shell-command-to-string
     (cond ((and org-project-use-ag (executable-find "ag"))
-           (concat "ag --nocolor -l 'TODO|FIXME|NOTE|XXX' " dir))
+           (concat "ag " org-project--ag-args " '" org-project--search-regexp "' " dir))
           ((executable-find "grep")
-           (concat "grep -ERl --color=never 'TODO|FIXME|NOTE|XXX' " dir))
+           (concat "grep" org-project--grep-args " '" org-project--search-regexp "' " dir))
           (:else (message "Could not find ag or grep in your path."))))
    "|\n" t "[ 	\n]"))
 
@@ -79,6 +88,7 @@
     (reverse comments)))
 
 (defun org-project--collect-comments (dir)
+  "Gather all comments from all the files"
   (loop for file in (org-project--file-list dir)
         collect (cons file (org-project--list-comments file))))
 

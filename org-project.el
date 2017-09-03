@@ -58,7 +58,7 @@
 (defun org-project--list-comments (file-path)
   "Parse through a file for a list of all the comments"
   (let (already-open
-        buf 
+        buf
         start
         (comments '()))
     (setq already-open (find-buffer-visiting file-path)
@@ -98,6 +98,33 @@
   "Ran when emacs closes"
   (org-project--save-cache))
 
+(defun org-project--populate-file (name dir)
+  (progn
+    (find-file (concat dir org-project--file-name))
+    (erase-buffer)
+    (mapc (lambda (file-list)
+            (let ((file-name (car file-list)))
+              (insert (format "* %s\n" file-name))
+              (mapc (lambda (comm)
+                      (insert (format "** [[%s::%s][%s]] - %s\n" file-name (nth 1 comm) (nth 1 comm) (car comm))))
+                    (cdr file-list))))
+          (org-project--collect-comments dir))
+    (org-mode)
+    (read-only-mode t)
+    (org-project-mode t)
+    (puthash name dir org-project--hash)
+    (org-project--save-cache)))
+
+(defun org-project--execute-with-hash-check (fun &rest args)
+  "First checks if the hash exists if not it trys to load from file and then checks again.
+If the hash exists it executes the function otherwise it prints an error"
+  ;; First try and load the hash table from file
+  (when (not org-project--hash)
+    (org-project--load-cache))
+  (if org-project--hash
+      (apply fun args)
+    (message "No projects found. Run \"org-project/create-project\" to create one.")))
+
 ;;* Commands
 (defun org-project/create-project (&optional directory)
   "Creates the org-file that will be associated with this project."
@@ -105,40 +132,34 @@
   (let ((name (read-from-minibuffer "Project name: "))
         (dir (if directory directory (expand-file-name (read-file-name "Project root dir: ")))))
     (if (file-directory-p dir)
-        (progn 
-          (find-file (concat dir org-project--file-name))
-          (mapc (lambda (file-list)
-                  (let ((file-name (car file-list)))
-                    (insert (format "* %s\n" file-name))
-                    (mapc (lambda (comm)
-                            (insert (format "** [[%s::%s][%s]] - %s\n" file-name (nth 1 comm) (nth 1 comm) (car comm))))
-                          (cdr file-list))))
-                (org-project--collect-comments dir))
-          (org-mode)
-          (org-project-mode t)
-          (puthash name dir org-project--hash)
-          (org-project--save-cache))
+        (org-project--populate-file name dir)
       (message "Please specify a directory"))))
 
 (defun org-project/open-project ()
   "Opens an existing org-project"
   (interactive)
-  ;; First try and load the hash table from file
-  (when (not org-project--hash)
-    (org-project--load-cache))
-  (if org-project--hash
-      (find-file
-       (concat
-        (gethash (completing-read "Select from list: " (hash-table-keys org-project--hash))
-                 org-project--hash)
-        org-project--file-name))
-    (message "No projects found. Run \"org-project/create-project\" to create one.")))
+  (org-project--execute-with-hash-check
+   (lambda ()
+     (find-file
+      (concat
+       (gethash (completing-read "Select from list: " (hash-table-keys org-project--hash))
+                org-project--hash)
+       org-project--file-name)))))
+
+(defun org-project/update-and-open-project ()
+  (interactive)
+  (org-project--execute-with-hash-check
+   (lambda ()
+     (let ((name (completing-read "Select from list: " (hash-table-keys org-project--hash))))
+       (org-project--populate-file name (gethash name org-project--hash))))))
 
 (defun org-project/create-from-projectile ()
   "Select a projectile project to use"
   (interactive)
-  (let ((project (completing-read "Project: " (projectile-relevant-known-projects))))
-    (org-project/create-project project)))
+  (if (featurep 'projectile)
+      (let ((project (completing-read "Project: " (projectile-relevant-known-projects))))
+        (org-project/create-project project))
+    (message "Projectile not detected. Are you sure you have it installed?")))
 
 ;;;###autoload
 (define-minor-mode org-project-mode

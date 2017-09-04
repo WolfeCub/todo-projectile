@@ -60,7 +60,7 @@
     (cond ((and org-project-use-ag (executable-find "ag"))
            (concat "ag " org-project--ag-args " '" org-project--search-regexp "' " dir))
           ((executable-find "grep")
-           (concat "grep" org-project--grep-args " '" org-project--search-regexp "' " dir))
+           (concat "grep " org-project--grep-args " '" org-project--search-regexp "' " dir))
           (:else (message "Could not find ag or grep in your path."))))
    "|\n" t "[ 	\n]"))
 
@@ -157,6 +157,7 @@ If the hash exists it executes the function otherwise it prints an error"
        org-project--file-name)))))
 
 (defun org-project/update-and-open-project ()
+  "Opens an existing org-project and researches for TODOs"
   (interactive)
   (org-project--execute-with-hash-check
    (lambda ()

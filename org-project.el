@@ -179,7 +179,7 @@ If the hash exists it executes the function otherwise it prints an error"
   (interactive)
   (if (featurep 'projectile)
       (let ((project (completing-read "Project: " (projectile-relevant-known-projects))))
-        (org-project/create-project project))
+        (org-project/create-project (read-from-minibuffer "Project name: ") project))
     (message "Projectile not detected. Are you sure you have it installed?")))
 
 (defun org-project--delete-bullet ()

@@ -16,6 +16,12 @@
   :group 'convenience)
 
 ;;* Variables
+(defvar org-project--keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-t") 'org-project--delete-bullet)
+    map)
+  "Keymap for org-project-mode")
+
 (defvar org-project--hash nil
   "The hash map that contains the cached project file locations")
 
@@ -30,11 +36,15 @@
 
 (defvar org-project--search-regexp "TODO|FIXME|NOTE|XXX")
 
-(defvar org-project--ag-args "--files-with-matches --nocolor"
+(defvar org-project--ag-args '("--files-with-matches" "--nocolor")
   "Arguments passed to ag")
 
-(defvar org-project--grep-args "--extended-regexp --dereference-recursive \
---files-with-matches --no-messages --color=never"
+(defvar org-project--grep-args
+  '("--extended-regexp"
+    "--dereference-recursive"
+    "--files-with-matches"
+    "--no-messages"
+    "--color=never")
   "Arguments passed to grep")
 
 ;;* Functions
@@ -58,9 +68,11 @@
   (split-string
    (shell-command-to-string
     (cond ((and org-project-use-ag (executable-find "ag"))
-           (concat "ag " org-project--ag-args " '" org-project--search-regexp "' " dir))
+           (concat "ag " (string-join org-project--ag-args " ") " '"
+                   org-project--search-regexp "' " dir))
           ((executable-find "grep")
-           (concat "grep " org-project--grep-args " '" org-project--search-regexp "' " dir))
+           (concat "grep " (string-join org-project--grep-args " ") " '"
+                   org-project--search-regexp "' " dir))
           (:else (message "Could not find ag or grep in your path."))))
    "|\n" t "[ 	\n]"))
 
@@ -136,14 +148,12 @@ If the hash exists it executes the function otherwise it prints an error"
     (message "No projects found. Run \"org-project/create-project\" to create one.")))
 
 ;;* Commands
-(defun org-project/create-project (&optional directory)
+(defun org-project/create-project (name directory)
   "Creates the org-file that will be associated with this project."
-  (interactive)
-  (let ((name (read-from-minibuffer "Project name: "))
-        (dir (if directory directory (expand-file-name (read-file-name "Project root dir: ")))))
-    (if (file-directory-p dir)
-        (org-project--populate-file name dir)
-      (message "Please specify a directory"))))
+  (interactive "MProject name: \nDProject root dir: ")
+  (if (file-directory-p directory)
+      (org-project--populate-file name directory)
+    (message "Please specify a directory")))
 
 (defun org-project/open-project ()
   "Opens an existing org-project"
@@ -172,6 +182,13 @@ If the hash exists it executes the function otherwise it prints an error"
         (org-project/create-project project))
     (message "Projectile not detected. Are you sure you have it installed?")))
 
+(defun org-project--delete-bullet ()
+    (interactive)
+    (read-only-mode -1)
+    (org-cut-subtree)
+    (message "")
+    (read-only-mode t))
+
 ;;;###autoload
 (define-minor-mode org-project-mode
   "Toggle org-project-mode.
@@ -179,8 +196,9 @@ Interactively with no argument, this command toggles the mode.
 A positive prefix argument enables the mode, any other prefix
 argument disables it.  From Lisp, argument omitted or nil enables
 the mode, `toggle' toggles the state."
-  nil ; The initial value
+  :initial-value nil ; The initial value
   :lighter " OProj"
+  :keymap org-project--keymap
   :group 'org-project
   (when org-project-mode
     ;; Load cached hash-table of projects into variable here

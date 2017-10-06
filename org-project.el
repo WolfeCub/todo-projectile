@@ -68,11 +68,11 @@
   (split-string
    (shell-command-to-string
     (cond ((and org-project-use-ag (executable-find "ag"))
-           (concat "ag " (string-join org-project--ag-args " ") " '"
-                   org-project--search-regexp "' " dir))
+           (concat "ag " (string-join org-project--ag-args " ") " \""
+                   org-project--search-regexp "\" " dir))
           ((executable-find "grep")
-           (concat "grep " (string-join org-project--grep-args " ") " '"
-                   org-project--search-regexp "' " dir))
+           (concat "grep " (string-join org-project--grep-args " ") " \""
+                   org-project--search-regexp "\" " dir))
           (:else (message "Could not find ag or grep in your path."))))
    "|\n" t "[ 	\n]"))
 

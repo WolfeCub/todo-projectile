@@ -67,13 +67,12 @@
   "Generate a list of files that contain the appropriate keywords"
   (split-string
    (shell-command-to-string
-    (cond ((and org-project-use-ag (executable-find "ag"))
+    (cond (org-project-use-ag
            (concat "ag " (string-join org-project--ag-args " ") " \""
                    org-project--search-regexp "\" " dir))
-          ((executable-find "grep")
+          (:else
            (concat "grep " (string-join org-project--grep-args " ") " \""
-                   org-project--search-regexp "\" " dir))
-          (:else (message "Could not find ag or grep in your path."))))
+                   org-project--search-regexp "\" " dir))))
    "|\n" t "[ 	\n]"))
 
 (defun org-project--list-comments (file-path)
@@ -151,9 +150,14 @@ If the hash exists it executes the function otherwise it prints an error"
 (defun org-project/create-project (name directory)
   "Creates the org-file that will be associated with this project."
   (interactive "MProject name: \nDProject root dir: ")
-  (if (file-directory-p directory)
-      (org-project--populate-file name directory)
-    (message "Please specify a directory")))
+  (cond ((and org-project-use-ag (not (executable-find "ag")))
+         (message "Could not find ag in path. We're looking for ag because you have 'org-project-use-ag' enabled."))
+        ((and (not org-project-use-ag) (not (executable-find "grep")))
+         (message "Couldn't find grep your path."))
+        ((not (file-directory-p directory))
+         (message "Please specify a directory"))
+        (:else
+         (org-project--populate-file name directory))))
 
 (defun org-project/open-project ()
   "Opens an existing org-project"

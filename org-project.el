@@ -171,7 +171,7 @@ If the hash exists it executes the function otherwise it prints an error"
        org-project--file-name)))))
 
 (defun org-project/update-and-open-project ()
-  "Opens an existing org-project and researches for TODOs"
+  "Opens an existing org-project and re-searches for TODOs"
   (interactive)
   (org-project--execute-with-hash-check
    (lambda ()

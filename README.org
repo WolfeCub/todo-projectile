@@ -9,7 +9,7 @@
 
 ** Customization
 
-   | Variable                     | Description                                               | Values       | Default |       |      |      |
-   |------------------------------+-----------------------------------------------------------+--------------+---------+-------+------+------|
-   | =org-project-use-ag=         | Use ag for project searching rather than the default grep | =t= or =nil= | =nil=   |       |      |      |
-   | =org-project--search-regexp= | The regex used to search through the projects for matchis | elisp regexp | =TODO   | FIXME | NOTE | XXX= |
+   | Variable                     | Description                                               | Values       | Default                     |
+   |------------------------------+-----------------------------------------------------------+--------------+-----------------------------+
+   | =org-project-use-ag=         | Use ag for project searching rather than the default grep | =t= or =nil= | =nil=                       |
+   | =org-project--search-regexp= | The regex used to search through the projects for matchis | elisp regexp | =TODO \vert FIXME \vert NOTE \vert XXX= |

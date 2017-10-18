@@ -2,14 +2,18 @@
   =org-project= compiles all of the =TODO=, =FIXME=, =NOTE= and =XXX=
   occurences from a project into a single org file (stored at the project root)
   with links to each of the occurences.
-  
+
   =org-project= aims to play nicely with any other project management solutions
   you may already be using. You can create a =org-project= project out of an
   existing =projectile= project by running =org-project/create-project-from-projectile=.
 
 ** Customization
+  - =org-project-use-ag=
+    - *Description*: Use ag for project searching rather than the default grep
+    - *Values*: =t= or =nil=
+    - *Default*: =nil=
 
-   | Variable                     | Description                                               | Values       | Default                     |
-   |------------------------------+-----------------------------------------------------------+--------------+-----------------------------+
-   | =org-project-use-ag=         | Use ag for project searching rather than the default grep | =t= or =nil= | =nil=                       |
-   | =org-project--search-regexp= | The regex used to search through the projects for matchis | elisp regexp | =TODO \vert FIXME \vert NOTE \vert XXX= |
+  - =org-project--search-regexp=
+    - *Description*: The regex used to search through the projects for match
+    - *Values*: elisp regexp
+    - *Default*: ==TODO|FIXME|NOTE|XXX=

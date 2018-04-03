@@ -1,45 +1,35 @@
-* Org Project
-  =org-project= compiles all of the =TODO=, =FIXME=, =NOTE= and =XXX=
+* Todo Projectile (formerly =org-project=)
+  =todo-projectile= compiles all of the =TODO=, =FIXME=, =NOTE= and =XXX=
   occurences from a project into a single org file (stored at the project root)
-  with links to each of the occurences.
-
-  =org-project= aims to play nicely with any other project management solutions
-  you may already be using. You can create a =org-project= project out of an
-  existing =projectile= project by running =org-project/create-project-from-projectile=.
+  with links to each of the occurences. It depends on projectile for it's project
+  information. This will not work without projectile
 
 ** Functions
-   - =org-project/create-project= - Creates a new project inside =org-project=. Projects
-     are persistant and the project file will be stored at the project root (by default).
+   - =todo-projectile/open-project= - Opens an existing project (using completing read).
 
-   - =org-project/open-project= - Opens an existing project (using completing read).
-
-   - =org-project/update-and-open-project= - Similar to the above command but also re-indexes
+   - =todo-projectile/update-and-open-project= - Similar to the above command but also re-indexes
      the project file to reflect any changes you've made.
 
-   - =org-project/create-from-projectile= - Creates a new project (similar to
-     =org-project/create-project=) from an existing =projectile= project. It will prompt
-     you with a list of existing projectile projects.
-
 ** Customization
-  - =org-project-use-ag= - Use ag for project searching rather than the default grep.
+  - =todo-projectile-use-ag= - Use ag for project searching rather than the default grep.
     - *Values*: =t= or =nil=
     - *Default*: =nil=
 
-  - =org-project--search-regexp= - The regex used to search through the projects for match.
+  - =todo-projectile--search-regexp= - The regex used to search through the projects for match.
     - *Values*: [elisp regexp]
     - *Default*: =TODO|FIXME|NOTE|XXX=
 
-  - =org-project--grep-args= - The arguments that =org-project= passes to =grep= when it's looking
-    for files. *WARNING*: Changing this from the default can break =org-project= as it relies on
+  - =todo-projectile--grep-args= - The arguments that =todo-projectile= passes to =grep= when it's looking
+    for files. *WARNING*: Changing this from the default can break =todo-projectile= as it relies on
     certain options being used.
     - *Values*: [list of strings]
     - *Default*: =("--extended-regexp" "--dereference-recursive" "--files-with-matches" "--no-messages" "--color=never")=
 
-  - =org-project--ag-args= - Same as above command except for =ag= rather than =grep=. Same warning applies.
+  - =todo-projectile--ag-args= - Same as above command except for =ag= rather than =grep=. Same warning applies.
     - *Values*: [list of strings]
     - *Default*: =("--files-with-matches" "--nocolor")=
 
-  - =org-project--file-name= - The name of the file that =org-project= will store the =TODO=s
+  - =todo-projectile--file-name= - The name of the file that =todo-projectile= will store the =TODO=s
     in. By default this file is stored at the project root.
     - *Values*: [any valid filename]
     - *Default*: =.project.org=
